@@ -11,5 +11,6 @@ fi
 
 #npm install remarkable -g
 
+cp md2html-example md2html
 sed -i "s#^source_root=\$#source_root="$PWD"#" ./md2html
 ln -s "$PWD/md2html" /usr/bin/md2html
