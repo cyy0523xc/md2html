@@ -14,11 +14,13 @@ source_root=
 
 show_help() {
     echo "批量将md文件转为html文档"
+    echo
     echo "运行：md2html title /path/to/save_html"
     echo "参数："
     echo "    title: [必须]网页标题"
     echo "    /path/to/save_html: [可选]html文件的保存目录，执行之前，该目录必须不为空。如果不传该参数，则默认为当前目录下的html目录"
-    echo "以下划线开头的md文件名会被忽略"
+    echo
+    echo "说明：以下划线开头的md文件名会被忽略"
 }
 
 if [ $# -eq 1 ]; then
