@@ -1,0 +1,180 @@
+#!/bin/bash
+# 
+# 批量将md文件转为html文档
+# 运行：md2html title /path/to/save_html
+# 参数：
+#    title: [必须]网页标题
+#    /path/to/save_html: html文件的保存目录，执行之前，该目录必须不为空
+# Author: Alex
+# Created Time: 2017年04月21日 星期五 19时23分00秒
+
+
+# 源码目录，执行install.sh的时候，会自动修改该变量的值
+source_root=
+
+show_help() {
+    echo "批量将md文件转为html文档"
+    echo "运行：md2html title /path/to/save_html"
+    echo "参数："
+    echo "    title: [必须]网页标题"
+    echo "    /path/to/save_html: [可选]html文件的保存目录，执行之前，该目录必须不为空。如果不传该参数，则默认为当前目录下的html目录"
+    echo "以下划线开头的md文件名会被忽略"
+}
+
+if [ $# -eq 1 ]; then
+    # 默认保存在当前目录下的html目录
+    root="$PWD/html"
+elif [ $# -eq 2 ]; then
+    root=$2
+    # 取最后一个字符
+    last=${root:((${#root} - 1))}
+    if [ "$last" = "/" ]; then
+        # 去掉最后的/
+        root=${root%/*}
+    fi
+else
+    show_help
+    exit 1
+fi
+
+title=$1
+
+# css样式文件名（保存在css目录下）
+# TODO 可以配置
+css_file=gfm.css
+
+if [ -d "$root" ]; then 
+    echo "html目录“$root”已经存在，请手动删除"
+    echo 
+    show_help
+    exit 1
+fi
+
+if [ -f "$root" ]; then 
+    echo "html目录“$root”已经存在，请手动删除"
+    echo 
+    show_help
+    exit 1
+fi
+
+if [ ! -d "${root%/*}" ]; then
+    echo "html目录“$root”的父目录必须存在"
+    echo 
+    show_help
+    exit 1
+fi
+
+
+# 创建目标目录
+mkdir "$root"
+
+# 复制css文件到目标目录
+cp "$source_root"/css/$css_file "$root"
+
+# 首页文件
+index=index.html
+
+createPdf() {
+    path="$root"
+    css="./$css_file"
+    indexPage="./$index"
+    url="./$1.html"
+    if [ "$2" != "" ]; then 
+        path="$root/$2"
+        url="./$2/$1.html"
+        css="../$css_file"
+        indexPage="../$index"
+        if [ ! -d "$path" ]; then
+            mkdir "$path"
+        fi
+    fi
+
+    file="$path/$1.html"
+
+    # 获取md文件的title
+    mdTitle=`head -n 1 "$1"`
+    if [ "${mdTitle:0:2}" = '# ' ]; then
+        mdTitle=${mdTitle:2}
+    else
+        echo "md文件：$1 的首行不是以“# ”开头，不能识别title"
+        exit 2
+    fi
+
+    # 生成首页上的链接
+    echo "<li><a href='$url'>$mdTitle</a></li>" >> $root/$index
+
+    # 格式化html文件
+    echo "<html>" > $file
+    echo "<title>$title - $1</title>" >> $file
+    echo '<link rel="stylesheet" href="'"$css"'">' >> $file
+    echo '<article class="markdown-body">' >> $file
+    echo '<a href="'"$indexPage"'">返回首页</a>' >> $file
+    echo '<h2></h2>' >> $file
+    cat "$1" | remarkable >> "$file"
+    echo "</article>" >> $file
+    echo "</html>" >> $file
+}
+
+# 生成首页的头部
+echo "<html>" > $root/$index
+echo "<title>$title - 首页</title>" >> $root/$index
+echo '<link rel="stylesheet" href="./'"$css_file"'">' >> $root/$index
+echo '<article class="markdown-body">' >> $root/$index
+echo "<h1>$title - 目录</h1>" >> $root/$index
+echo '<h2></h2>' >> $root/$index
+echo "<ul>" >> $root/$index
+
+for i in `ls`; do
+    if [ "$i" = html ]; then
+        continue
+    fi
+    if [ -d "$i" ]; then
+        dir="$i"
+        cd $dir
+        echo "$dir ..."
+        hasChild=0
+        for filename in `ls`; do
+            if [ -f "$filename" ]; then
+                if [ "${filename##*.}" = md ]; then
+                    # 以下划线开头的文件进行忽略
+                    if [ "${filename:0:1}" != '_' ]; then
+                        if [ $hasChild = '0' ]; then
+                            echo "<li>$dir" >> $root/$index
+                            echo '<ul>' >> $root/$index
+                            hasChild=1
+                        fi
+                    fi
+
+                    echo "   createHTML $filename ..."
+                    createPdf "$filename" "$dir"
+                fi
+            fi
+        done
+
+        if [ $hasChild = '1' ]; then 
+            echo '</ul>' >> $root/$index
+            echo "</li>" >> $root/$index
+        fi
+
+        cd ../
+    elif [ -f "$i" ]; then
+        filename="$i"
+        if [ "${filename##*.}" = md ]; then
+            # 以下划线开头的文件进行忽略
+            if [ "${filename:0:1}" != '_' ]; then
+                echo "   createHTML $filename ..."
+                createPdf "$filename" ""
+            fi
+        fi
+    fi
+
+done
+
+# 首页的尾部
+echo "</ul>" >> $root/$index
+echo "</article>" >> $root/$index
+echo "</html>" >> $root/$index
+
+# finish
+echo ""
+echo "===> DONE!"
