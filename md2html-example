@@ -1,10 +1,10 @@
 #!/bin/bash
 # 
 # 批量将md文件转为html文档
-# 运行：md2html title /path/to/save_html
+# 运行：md2html -t title -s /path/to/save_html
 # 参数：
-#    title: [必须]网页标题
-#    /path/to/save_html: html文件的保存目录，执行之前，该目录必须不为空
+#    -t title: [必须]网页标题
+#    -s /path/to/save_html: html文件的保存目录，执行之前，该目录必须不为空
 # Author: Alex
 # Created Time: 2017年04月21日 星期五 19时23分00秒
 
@@ -14,32 +14,45 @@ source_root=
 
 show_help() {
     echo "批量将md文件转为html文档"
+    echo "在相应的目录下执行命令，就能将该目录以及子目录下的md文件转化为对应的html文件，并生成一个index.html的首页文件，默认html文件的目录在当前目录下的html目录，如果需要还可以指定相应保存的目录"
     echo
-    echo "运行：md2html title /path/to/save_html"
+    echo "运行：md2html -t title -s /path/to/save_html"
     echo "参数："
-    echo "    title: [必须]网页标题"
-    echo "    /path/to/save_html: [可选]html文件的保存目录，执行之前，该目录必须不为空。如果不传该参数，则默认为当前目录下的html目录"
+    echo "    -t title: [必须]网页标题"
+    echo "    -s /path/to/save_html: [可选]html文件的保存目录，执行之前，该目录必须不为空。如果不传该参数，则默认为当前目录下的html目录"
     echo
     echo "说明：以下划线开头的md文件名会被忽略"
 }
 
-if [ $# -eq 1 ]; then
-    # 默认保存在当前目录下的html目录
-    root="$PWD/html"
-elif [ $# -eq 2 ]; then
-    root=$2
-    # 取最后一个字符
-    last=${root:((${#root} - 1))}
-    if [ "$last" = "/" ]; then
-        # 去掉最后的/
-        root=${root%/*}
-    fi
-else
+# 默认保存在当前目录下的html目录
+root="$PWD/html"
+title=
+
+while getopts "s:t:" opt;           # 字符后面的冒号表示该参数必须有值 
+do
+    case $opt in
+        s) root="$OPTARG"
+            # 取最后一个字符
+            last=${root:((${#root} - 1))}
+            if [ "$last" = "/" ]; then
+                # 去掉最后的/
+                root=${root%/*}
+            fi
+            ;;                               # 注意这里的两个分号  
+        t) title="$OPTARG"
+            ;;
+        *) show_help
+            exit 1
+            ;;
+    esac
+done
+
+if [ ${#title} -lt 1 ]; then
+    echo "-t title，网页标题参数不能为空"
+    echo
     show_help
     exit 1
 fi
-
-title=$1
 
 # css样式文件名（保存在css目录下）
 # TODO 可以配置
@@ -99,6 +112,7 @@ createPdf() {
         mdTitle=${mdTitle:2}
     else
         echo "md文件：$1 的首行不是以“# ”开头，不能识别title"
+        echo
         exit 2
     fi
 
@@ -178,5 +192,6 @@ echo "</article>" >> $root/$index
 echo "</html>" >> $root/$index
 
 # finish
-echo ""
+echo
+echo "生成的html文件已经保存到了目录: $root, 其中首页文件为：index.html"
 echo "===> DONE!"
