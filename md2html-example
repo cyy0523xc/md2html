@@ -10,6 +10,7 @@
 
 
 # 源码目录，执行install.sh的时候，会自动修改该变量的值
+# 原始值为空字符串，安装时修改该值
 source_root=
 
 show_help() {
@@ -49,7 +50,6 @@ done
 
 if [ ${#title} -lt 1 ]; then
     echo "-t title，网页标题参数不能为空"
-    echo
     show_help
     exit 1
 fi
@@ -89,7 +89,7 @@ cp "$source_root"/css/$css_file "$root"
 # 首页文件
 index=index.html
 
-createPdf() {
+createHTML() {
     path="$root"
     css="./$css_file"
     indexPage="./$index"
@@ -112,7 +112,6 @@ createPdf() {
         mdTitle=${mdTitle:2}
     else
         echo "md文件：$1 的首行不是以“# ”开头，不能识别title"
-        echo
         exit 2
     fi
 
@@ -120,21 +119,35 @@ createPdf() {
     echo "<li><a href='$url'>$mdTitle</a></li>" >> $root/$index
 
     # 格式化html文件
-    echo "<html>" > $file
+    echo "<!-- Generate by md2html. 请勿手动修改 -->" >> $file
+    echo "<html>" >> $file
+    echo "<head>" >> $file
+    echo '<meta charset="utf-8">' >> $file
     echo "<title>$title - $1</title>" >> $file
     echo '<link rel="stylesheet" href="'"$css"'">' >> $file
+    echo "</head>" >> $file
+
+    echo '<body>' >> $file
     echo '<article class="markdown-body">' >> $file
     echo '<a href="'"$indexPage"'">返回首页</a>' >> $file
     echo '<h2></h2>' >> $file
     cat "$1" | remarkable >> "$file"
     echo "</article>" >> $file
+
+    echo '</body>' >> $file
     echo "</html>" >> $file
 }
 
 # 生成首页的头部
-echo "<html>" > $root/$index
+echo "<!-- Generate by md2html. 请勿手动修改 -->" > $root/$index
+echo "<html>" >> $root/$index
+echo "<head>" >> $root/$index
+echo '<meta charset="utf-8">' >> $root/$index
 echo "<title>$title - 首页</title>" >> $root/$index
 echo '<link rel="stylesheet" href="./'"$css_file"'">' >> $root/$index
+echo "</head>" >> $root/$index
+
+echo '<body>' >> $root/$index
 echo '<article class="markdown-body">' >> $root/$index
 echo "<h1>$title - 目录</h1>" >> $root/$index
 echo '<h2></h2>' >> $root/$index
@@ -162,7 +175,7 @@ for i in `ls`; do
                     fi
 
                     echo "   createHTML $filename ..."
-                    createPdf "$filename" "$dir"
+                    createHTML "$filename" "$dir"
                 fi
             fi
         done
@@ -179,7 +192,7 @@ for i in `ls`; do
             # 以下划线开头的文件进行忽略
             if [ "${filename:0:1}" != '_' ]; then
                 echo "   createHTML $filename ..."
-                createPdf "$filename" ""
+                createHTML "$filename" ""
             fi
         fi
     fi
@@ -189,6 +202,7 @@ done
 # 首页的尾部
 echo "</ul>" >> $root/$index
 echo "</article>" >> $root/$index
+echo '</body>' >> $root/$index
 echo "</html>" >> $root/$index
 
 # finish
