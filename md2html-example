@@ -164,7 +164,8 @@ for i in `ls`; do
         hasChild=0
         for filename in `ls`; do
             if [ -f "$filename" ]; then
-                if [ "${filename##*.}" = md ]; then
+                filetype="${filename##*.}"
+                if [ "$filetype" = md ]; then
                     # 以下划线开头的文件进行忽略
                     if [ "${filename:0:1}" != '_' ]; then
                         if [ $hasChild = '0' ]; then
@@ -176,6 +177,8 @@ for i in `ls`; do
 
                     echo "   createHTML $filename ..."
                     createHTML "$filename" "$dir"
+                elif [ "$filetype" = png -o "$filetype" = jpg -o "$filetype" = jpeg -o "$filetype" = gif ]; then
+                    cp "$filename" "$root/$dir/"
                 fi
             fi
         done
@@ -188,12 +191,15 @@ for i in `ls`; do
         cd ../
     elif [ -f "$i" ]; then
         filename="$i"
-        if [ "${filename##*.}" = md ]; then
+        filetype="${filename##*.}"
+        if [ "$filetype" = md ]; then
             # 以下划线开头的文件进行忽略
             if [ "${filename:0:1}" != '_' ]; then
                 echo "   createHTML $filename ..."
                 createHTML "$filename" ""
             fi
+        elif [ "$filetype" = png -o "$filetype" = jpg -o "$filetype" = jpeg -o "$filetype" = gif ]; then
+            cp "$filename" "$root/"
         fi
     fi
 
