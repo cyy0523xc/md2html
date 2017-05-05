@@ -13,6 +13,9 @@
 # 原始值为空字符串，安装时修改该值
 source_root=
 
+# 配置文件
+config_file=.md2html
+
 show_help() {
     echo "批量将md文件转为html文档"
     echo "在相应的目录下执行命令，就能将该目录以及子目录下的md文件转化为对应的html文件，并生成一个index.html的首页文件，默认html文件的目录在当前目录下的html目录，如果需要还可以指定相应保存的目录"
@@ -78,6 +81,20 @@ if [ ! -d "${root%/*}" ]; then
     show_help
     exit 1
 fi
+
+# 加载配置文件
+declare -A CONFIG
+if [ -f "$config_file" ]; then
+    source "$config_file"
+fi
+
+get_dir_title() {
+    if [ ${CONFIG[$1]} ]; then
+        echo ${CONFIG[$1]}
+    else
+        echo $1
+    fi
+}
 
 
 # 创建目标目录
@@ -169,7 +186,8 @@ for i in `ls -Sr`; do
                     # 以下划线开头的文件进行忽略
                     if [ "${filename:0:1}" != '_' ]; then
                         if [ $hasChild = '0' ]; then
-                            echo "<li>$dir" >> $root/$index
+                            dir_title=`get_dir_title "$dir"`
+                            echo "<li>$dir_title" >> $root/$index
                             echo '<ul>' >> $root/$index
                             hasChild=1
                         fi
