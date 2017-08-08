@@ -170,7 +170,7 @@ echo "<h1>$title - 目录</h1>" >> $root/$index
 echo '<h2></h2>' >> $root/$index
 echo "<ul>" >> $root/$index
 
-for i in `ls -Sr`; do
+for i in `ls`; do
     if [ "$i" = html ]; then
         continue
     fi
@@ -179,7 +179,7 @@ for i in `ls -Sr`; do
         cd $dir
         echo "$dir ..."
         hasChild=0
-        for filename in `ls -Sr`; do
+        for filename in `ls`; do
             if [ -f "$filename" ]; then
                 filetype="${filename##*.}"
                 if [ "$filetype" = md ]; then
