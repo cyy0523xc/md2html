@@ -184,13 +184,17 @@ for i in `ls -Sr`; do
                 filetype="${filename##*.}"
                 if [ "$filetype" = md ]; then
                     # 以下划线开头的文件进行忽略
-                    if [ "${filename:0:1}" != '_' ]; then
+                    only_filename=${filename##*/}
+                    if [ "${only_filename:0:1}" != '_' ]; then
                         if [ $hasChild = '0' ]; then
                             dir_title=`get_dir_title "$dir"`
                             echo "<li>$dir_title" >> $root/$index
                             echo '<ul>' >> $root/$index
                             hasChild=1
                         fi
+                    else
+                        echo "Filter $only_filename"
+                        continue
                     fi
 
                     echo "   createHTML $filename ..."
