@@ -14,12 +14,12 @@
 - [x] 支持对目录名进行配置
 
 ## 安装
-
 安装前需要准备好nodejs的环境。
 
 ```sh
 # 安装nodejs环境
 apt-get install -y nodejs npm
+cp /usr/bin/nodejs /usr/bin/node
 
 # clone项目
 git clone git@github.com:cyy0523xc/md2html

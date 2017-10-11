@@ -16,6 +16,7 @@ then
 else
     echo "Please install nodejs first!"
     echo "apt-get install -y nodejs npm"
+    echo "cp /usr/bin/nodejs /usr/bin/node"
     exit 1
 fi
 
