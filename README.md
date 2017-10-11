@@ -18,8 +18,11 @@
 安装前需要准备好nodejs的环境。
 
 ```sh
-git clone git@github.com:cyy0523xc/md2html
+# 安装nodejs环境
+apt-get install -y nodejs npm
 
+# clone项目
+git clone git@github.com:cyy0523xc/md2html
 cd md2html
 
 # 安装

@@ -15,6 +15,7 @@ then
     echo "nodejs has been installed!"
 else
     echo "Please install nodejs first!"
+    echo "apt-get install -y nodejs npm"
     exit 1
 fi
 
